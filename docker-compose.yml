@@ -1,0 +1,8 @@
+services:
+  cupones-svc:
+    build: .
+    image: duoc/jv0101-foodgo-cupones:1.0.0
+    container_name: foodgo-cupones-svc
+    ports:
+      - "${PORT:-8087}:8087"
+    restart: unless-stopped
