@@ -230,7 +230,7 @@
         "url": "{{baseUrl}}/api/usos/{{childId}}",
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"2026-10-06T20:00:00 actualizado\",\n  \"montoDescontado\": 10.0\n}",
+          "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"2026-10-08T01:00:30\",\n  \"montoDescontado\": 10\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -245,7 +245,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Dato actualizado\", () => pm.expect(pm.response.json()[\"fechaUso\"]).to.eql(\"2026-10-06T20:00:00 actualizado\"));"
+              "pm.test(\"Dato actualizado\", () => pm.expect(pm.response.json()[\"fechaUso\"]).to.eql(\"2026-10-08T01:00:30\"));"
             ]
           }
         }
