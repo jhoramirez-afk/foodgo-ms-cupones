@@ -1,5 +1,11 @@
 package cl.duoc.jv0101.foodgo.cupones.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,6 +32,11 @@ public class Cupon {
     @Column
     private BigDecimal descuento;
 
+    @Valid
+    @OneToMany(mappedBy = "cupon", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("cupon-usos")
+    private List<UsoCupon> usos = new ArrayList<>();
+
     public Long getId() { return id; }
 
     public void setId(Long id) { this.id = id; }
@@ -42,4 +53,24 @@ public class Cupon {
 
     public void setDescuento(BigDecimal descuento) { this.descuento = descuento; }
 
+    public List<UsoCupon> getUsos() {
+        return usos;
+    }
+
+    public void setUsos(List<UsoCupon> items) {
+        this.usos.clear();
+        if (items != null) {
+            items.forEach(this::addUsoCupon);
+        }
+    }
+
+    public void addUsoCupon(UsoCupon item) {
+        usos.add(item);
+        item.setCupon(this);
+    }
+
+    public void removeUsoCupon(UsoCupon item) {
+        usos.remove(item);
+        item.setCupon(null);
+    }
 }
