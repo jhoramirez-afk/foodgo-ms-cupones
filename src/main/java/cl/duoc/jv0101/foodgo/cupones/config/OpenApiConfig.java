@@ -13,7 +13,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Cupon API")
-                        .version("1.0.0")
-                        .description("Microservicio Cupon del caso FoodGo - EP01 JVY0101."));
+                        .version("2.0.0")
+                        .description("Microservicio Cupon del caso FoodGo - EP02 JVY0101."));
     }
 }

@@ -1,8 +1,38 @@
 services:
-  cupones-svc:
+  mysql:
+    image: mysql:8.4
+    container_name: foodgo-cupones-mysql
+    environment:
+      MYSQL_DATABASE: foodgo_cupones
+      MYSQL_USER: foodgo
+      MYSQL_PASSWORD: foodgo
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "${DB_EXPOSE_PORT:-33067}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
     build: .
-    image: duoc/jv0101-foodgo-cupones:1.0.0
     container_name: foodgo-cupones-svc
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: foodgo_cupones
+      DB_USER: foodgo
+      DB_PASSWORD: foodgo
+      PORT: 8087
+    depends_on:
+      mysql:
+        condition: service_healthy
     ports:
       - "${PORT:-8087}:8087"
-    restart: unless-stopped
+
+volumes:
+  mysql_data:
