@@ -1,5 +1,6 @@
 package cl.duoc.jv0101.foodgo.cupones.controller;
 
+import cl.duoc.jv0101.foodgo.cupones.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class CuponController {
     @GetMapping("/{id}")
     public ResponseEntity<Cupon> obtener(@PathVariable Long id) {
         return service.findById(id).map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("Cupon no encontrado con id " + id));
     }
 
     @PostMapping
@@ -45,12 +46,14 @@ public class CuponController {
     public ResponseEntity<Cupon> actualizar(@PathVariable Long id,
             @Valid @RequestBody Cupon datos) {
         return service.update(id, datos).map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("Cupon no encontrado con id " + id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        return service.delete(id) ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+        if (!service.delete(id)) {
+            throw new ResourceNotFoundException("Cupon no encontrado con id " + id);
+        }
+        return ResponseEntity.noContent().build();
     }
 }
