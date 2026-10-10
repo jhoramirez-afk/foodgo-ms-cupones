@@ -40,8 +40,8 @@ class CuponControllerTest {
     private Cupon recurso(Long id) {
         Cupon r = new Cupon();
         r.setId(id);
-        r.setCodigo("Demo");
-        r.setTipo("valor");
+        r.setCodigo("BARRIO10");
+        r.setTipo("PORCENTAJE");
         r.setDescuento(BigDecimal.TEN);
         return r;
     }
@@ -64,7 +64,7 @@ class CuponControllerTest {
         when(service.findById(1L)).thenReturn(Optional.of(recurso(1L)));
         mockMvc.perform(get("/api/cupones/1"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.codigo").value("Demo"));
+            .andExpect(jsonPath("$.codigo").value("BARRIO10"));
     }
 
     @Test
@@ -94,7 +94,7 @@ class CuponControllerTest {
     @Test
     void actualizarExistenteDevuelve200() throws Exception {
         Cupon actualizado = recurso(1L);
-        actualizado.setCodigo("Actualizado");
+        actualizado.setCodigo("BARRIO15");
         when(service.update(any(), any())).thenReturn(Optional.of(actualizado));
         mockMvc.perform(put("/api/cupones/1")
                 .contentType(MediaType.APPLICATION_JSON)
