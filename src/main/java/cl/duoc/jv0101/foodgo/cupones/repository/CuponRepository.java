@@ -14,4 +14,6 @@ public interface CuponRepository extends JpaRepository<Cupon, Long> {
     @Override
     @EntityGraph(attributePaths = "usos")
     Optional<Cupon> findById(Long id);
+    boolean existsByCodigoIgnoreCase(String codigo);
+    boolean existsByCodigoIgnoreCaseAndIdNot(String codigo, Long id);
 }
