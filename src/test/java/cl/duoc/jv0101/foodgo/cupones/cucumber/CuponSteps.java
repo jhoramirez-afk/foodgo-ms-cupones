@@ -33,10 +33,10 @@ public class CuponSteps {
         return "http://localhost:" + port + "/api/cupones";
     }
 
-    private HttpEntity<Map<String, String>> body(String valor) {
+    private HttpEntity<Map<String, Object>> body(String valor) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity<>(Map.of("codigo", valor), headers);
+        return new HttpEntity<>(Map.of("codigo", valor, "tipo", "PORCENTAJE", "descuento", 10), headers);
     }
 
     @Given("el servicio {string} está disponible")

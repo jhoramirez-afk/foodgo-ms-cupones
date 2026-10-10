@@ -1,5 +1,12 @@
 package cl.duoc.jv0101.foodgo.cupones.model;
 
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToMany;
@@ -12,7 +19,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 
 
@@ -24,18 +30,30 @@ public class Cupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El código es obligatorio")
-    @Column(nullable = false)
+    @NotBlank(message = "Código es obligatorio")
+    @Pattern(regexp = "[A-Z0-9_-]{3,40}", message = "El código debe tener de 3 a 40 letras mayúsculas, números, guiones o guiones bajos")
+    @Column(nullable = false, unique = true, length = 40)
     private String codigo;
-    @Column
+    @NotBlank(message = "Tipo de cupón es obligatorio")
+    @Pattern(regexp = "PORCENTAJE|MONTO_FIJO", message = "Tipo de cupón debe ser PORCENTAJE, MONTO_FIJO")
+    @Column(nullable = false)
     private String tipo;
-    @Column
+    @NotNull(message = "Descuento es obligatorio")
+    @DecimalMin(value = "1", message = "Descuento debe ser mayor que cero")
+    @Digits(integer = 9, fraction = 0, message = "El importe debe expresarse en pesos CLP enteros, hasta 9 dígitos")
+    @Column(precision = 9, scale = 0)
     private BigDecimal descuento;
 
     @Valid
     @OneToMany(mappedBy = "cupon", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("cupon-usos")
     private List<UsoCupon> usos = new ArrayList<>();
+
+    @AssertTrue(message = "El descuento porcentual no puede superar 100")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isPorcentajeValido() {
+        return !"PORCENTAJE".equals(tipo) || descuento == null || descuento.compareTo(new BigDecimal("100")) <= 0;
+    }
 
     public Long getId() { return id; }
 

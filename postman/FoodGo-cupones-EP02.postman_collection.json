@@ -1,562 +1,992 @@
 {
   "info": {
-    "_postman_id": "foodgo-cupones-ep02",
-    "name": "FoodGo - Cupon EP02",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "_postman_id": "5a38de5c-240a-48d2-9a02-7c0916168e59",
+    "name": "FoodGo | 07 Cupones | CRUD EP02",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "CRUD persistente y validaciones del dominio de delivery. Ejecutar las carpetas en orden. Los ID se capturan automáticamente. La última carpeta elimina solamente los registros creados en esta ejecución. Importes en CLP enteros. Referencias entre servicios declarativas; la EP02 demuestra CRUD y relaciones dentro de cada dominio."
+  },
+  "auth": {
+    "type": "noauth"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8087"
+      "value": "http://127.0.0.1:8087",
+      "type": "string"
     },
     {
       "key": "parentId",
-      "value": ""
+      "value": "",
+      "type": "string"
     },
     {
       "key": "childId",
-      "value": ""
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "runTag",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fechaDemo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fechaDemoActualizada",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "fechaDemoFinal",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "01 Crear entidad principal",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"codigo\": \"EP02DEMO\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+      "name": "01 Crear, consultar y actualizar",
+      "item": [
+        {
+          "name": "01 Crear Cupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 201. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"BARRIO10-{{runTag}}\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
-              "if (pm.response.code === 201) pm.collectionVariables.set(\"parentId\", pm.response.json().id);"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "02 Listar entidades principales",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "03 Consultar principal por ID real",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/{{parentId}}"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "04 Crear entidad relacionada",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"2026-10-06T20:00:00\",\n  \"montoDescontado\": 10.0\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"runTag\", Date.now().toString(36).toUpperCase() + \"-\" + pm.variables.replaceIn(\"{{$randomUUID}}\").replace(/-/g, \"\").slice(0, 8).toUpperCase());",
+                  "const ayer = Date.now() - 24*60*60*1000;",
+                  "pm.collectionVariables.set(\"fechaDemo\", new Date(ayer).toISOString().slice(0,19));",
+                  "pm.collectionVariables.set(\"fechaDemoActualizada\", new Date(ayer + 5*60*1000).toISOString().slice(0,19));",
+                  "pm.collectionVariables.set(\"fechaDemoFinal\", new Date(ayer + 20*60*1000).toISOString().slice(0,19));",
+                  "pm.collectionVariables.unset(\"parentId\");",
+                  "pm.collectionVariables.unset(\"childId\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"ID generado\", () => pm.expect(Number.isInteger(pm.response.json().id) && pm.response.json().id > 0).to.eql(true));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"parentId\", pm.response.json().id);"
+                ]
+              }
             }
-          }
-        }
-      },
-      "event": [
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
-              "if (pm.response.code === 201) pm.collectionVariables.set(\"childId\", pm.response.json().id);"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "05 Listar relación",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "06 Consultar relacionada",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/usos/{{childId}}"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "07 Actualizar principal",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/{{parentId}}",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"codigo\": \"EP02DEMO actualizado\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "name": "02 Listar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 200. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Lista JSON\", () => pm.expect(Array.isArray(pm.response.json())).to.eql(true));"
+                ]
+              }
             }
-          }
-        }
-      },
-      "event": [
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Dato actualizado\", () => pm.expect(pm.response.json()[\"codigo\"]).to.eql(\"EP02DEMO actualizado\"));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "08 Actualizar relacionada",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/usos/{{childId}}",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"2026-10-06T20:00:00 actualizado\",\n  \"montoDescontado\": 10.0\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "name": "03 Consultar por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}",
+            "description": "Respuesta esperada: HTTP 200. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
             }
-          }
-        }
-      },
-      "event": [
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Dato actualizado\", () => pm.expect(pm.response.json()[\"fechaUso\"]).to.eql(\"2026-10-06T20:00:00 actualizado\"));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "09 Validación 400",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones",
-        "body": {
-          "mode": "raw",
-          "raw": "{}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "name": "04 Crear UsoCupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
+            "description": "Respuesta esperada: HTTP 201. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"{{fechaDemo}}\",\n  \"subtotalPedido\": 19980\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
-          }
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "10 Principal inexistente 404",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/9223372036854775807"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "11 Padre inexistente 404",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/9223372036854775807/usos",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"2026-10-06T20:00:00\",\n  \"montoDescontado\": 10.0\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"ID generado\", () => pm.expect(Number.isInteger(pm.response.json().id) && pm.response.json().id > 0).to.eql(true));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"childId\", pm.response.json().id);",
+                  "pm.test(\"10% de 19980 es 1998\", () => pm.expect(pm.response.json().montoDescontado).to.eql(1998));"
+                ]
+              }
             }
-          }
-        }
-      },
-      "event": [
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "12 ID inválido 400",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/no-es-numero"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(400); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "13 Restricción de longitud en BD 409",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"codigo\": \"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "name": "05 Consultar relación JPA",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
+            "description": "Respuesta esperada: HTTP 200. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Hijo asociado al padre\", () => pm.expect(pm.response.json().some(x => x.id === Number(pm.collectionVariables.get(\"childId\")))).to.eql(true));"
+                ]
+              }
             }
-          }
-        }
-      },
-      "event": [
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(409); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "14 Eliminar relacionada",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/usos/{{childId}}"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "15 Confirmar relacionada eliminada",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/usos/{{childId}}"
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "16 Crear relacionada para cascada",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"2026-10-06T20:00:00\",\n  \"montoDescontado\": 10.0\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+          "name": "06 Consultar hijo por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/usos/{{childId}}",
+            "description": "Respuesta esperada: HTTP 200. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
             }
-          }
-        }
-      },
-      "event": [
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
-              "if (pm.response.code === 201) pm.collectionVariables.set(\"childId\", pm.response.json().id);"
-            ]
-          }
+          "name": "07 Actualizar entidad principal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}",
+            "description": "Respuesta esperada: HTTP 200. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"BARRIO10VIP-{{runTag}}\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Campos guardados\", () => { const expected = JSON.parse(pm.variables.replaceIn(pm.request.body.raw)); const actual = pm.response.json(); Object.keys(expected).forEach(key => pm.expect(actual[key]).to.eql(key === \"email\" ? expected[key].toLowerCase() : expected[key])); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 Actualizar entidad relacionada",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/usos/{{childId}}",
+            "description": "Respuesta esperada: HTTP 200. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"{{fechaDemoActualizada}}\",\n  \"subtotalPedido\": 29970\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Campos guardados\", () => { const expected = JSON.parse(pm.variables.replaceIn(pm.request.body.raw)); const actual = pm.response.json(); Object.keys(expected).forEach(key => pm.expect(actual[key]).to.eql(key === \"email\" ? expected[key].toLowerCase() : expected[key])); });",
+                  "pm.test(\"10% de 29970 es 2997\", () => pm.expect(pm.response.json().montoDescontado).to.eql(2997));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 Comprobar datos y relación después de actualizar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}",
+            "description": "Respuesta esperada: HTTP 200. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "17 Eliminar principal y su relación",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/{{parentId}}"
-      },
-      "event": [
+      "name": "02 Errores y reglas del negocio",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
-            ]
-          }
+          "name": "Campos obligatorios vacíos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ID inexistente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/9223372036854775807",
+            "description": "Respuesta esperada: HTTP 404. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(404); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Padre inexistente en relación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/9223372036854775807/usos",
+            "description": "Respuesta esperada: HTTP 404. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"{{fechaDemo}}\",\n  \"subtotalPedido\": 19980\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(404); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ID no numérico",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/no-es-numero",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Campo demasiado largo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Porcentaje superior a 100",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"BARRIO10-{{runTag}}\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 101\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });",
+                  "pm.test(\"Campo rechazado: porcentajeValido\", () => pm.expect(Object.prototype.hasOwnProperty.call(pm.response.json().validationErrors,\"porcentajeValido\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Descuento cero",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"BARRIO10-{{runTag}}\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });",
+                  "pm.test(\"Campo rechazado: descuento\", () => pm.expect(Object.prototype.hasOwnProperty.call(pm.response.json().validationErrors,\"descuento\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tipo inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"BARRIO10-{{runTag}}\",\n  \"tipo\": \"REGALO\",\n  \"descuento\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });",
+                  "pm.test(\"Campo rechazado: tipo\", () => pm.expect(Object.prototype.hasOwnProperty.call(pm.response.json().validationErrors,\"tipo\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Código inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"barrio 10\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });",
+                  "pm.test(\"Campo rechazado: codigo\", () => pm.expect(Object.prototype.hasOwnProperty.call(pm.response.json().validationErrors,\"codigo\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Subtotal obligatorio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"{{fechaDemo}}\",\n  \"subtotalPedido\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });",
+                  "pm.test(\"Campo rechazado: subtotalPedido\", () => pm.expect(Object.prototype.hasOwnProperty.call(pm.response.json().validationErrors,\"subtotalPedido\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Subtotal cero",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"{{fechaDemo}}\",\n  \"subtotalPedido\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });",
+                  "pm.test(\"Campo rechazado: subtotalPedido\", () => pm.expect(Object.prototype.hasOwnProperty.call(pm.response.json().validationErrors,\"subtotalPedido\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pedido inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
+            "description": "Respuesta esperada: HTTP 400. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 0,\n  \"fechaUso\": \"{{fechaDemo}}\",\n  \"subtotalPedido\": 19980\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(400); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });",
+                  "pm.test(\"Campo rechazado: pedidoId\", () => pm.expect(Object.prototype.hasOwnProperty.call(pm.response.json().validationErrors,\"pedidoId\")).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Código duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones",
+            "description": "Respuesta esperada: HTTP 409. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"BARRIO10VIP-{{runTag}}\",\n  \"tipo\": \"PORCENTAJE\",\n  \"descuento\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(409); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cupón ya utilizado en ese pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
+            "description": "Respuesta esperada: HTTP 409. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"{{fechaDemo}}\",\n  \"subtotalPedido\": 19980\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(409); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "18 Confirmar principal eliminado",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/cupones/{{parentId}}"
-      },
-      "event": [
+      "name": "03 Eliminar y comprobar cascada",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "19 Confirmar cascada",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/usos/{{childId}}"
-      },
-      "event": [
+          "name": "Eliminar hijo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/usos/{{childId}}",
+            "description": "Respuesta esperada: HTTP 204. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
-              "pm.test(\"Error JSON uniforme\", () => { const e = pm.response.json(); pm.expect(e.status).to.eql(404); pm.expect(e.message).to.be.a(\"string\"); pm.expect(e.path).to.be.a(\"string\"); });"
-            ]
-          }
+          "name": "Confirmar eliminación del hijo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/usos/{{childId}}",
+            "description": "Respuesta esperada: HTTP 404. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(404); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear hijo para comprobar cascada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}/usos",
+            "description": "Respuesta esperada: HTTP 201. Datos ficticios para la EP02.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pedidoId\": 1,\n  \"fechaUso\": \"{{fechaDemo}}\",\n  \"subtotalPedido\": 19980\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"ID generado\", () => pm.expect(Number.isInteger(pm.response.json().id) && pm.response.json().id > 0).to.eql(true));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set(\"childId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar entidad principal y relación",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}",
+            "description": "Respuesta esperada: HTTP 204. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar eliminación del padre",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/cupones/{{parentId}}",
+            "description": "Respuesta esperada: HTTP 404. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(404); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar cascada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/usos/{{childId}}",
+            "description": "Respuesta esperada: HTTP 404. Datos ficticios para la EP02."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error estructurado\", () => { pm.expect(pm.response.json().status).to.eql(404); pm.expect(typeof pm.response.json().message).to.eql(\"string\"); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

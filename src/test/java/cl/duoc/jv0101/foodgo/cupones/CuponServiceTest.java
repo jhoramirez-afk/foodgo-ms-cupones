@@ -29,8 +29,8 @@ class CuponServiceTest {
     private Cupon recurso() {
         Cupon r = new Cupon();
         r.setId(1L);
-        r.setCodigo("Demo");
-        r.setTipo("valor");
+        r.setCodigo("BARRIO10");
+        r.setTipo("PORCENTAJE");
         r.setDescuento(BigDecimal.TEN);
         return r;
     }
@@ -56,18 +56,18 @@ class CuponServiceTest {
     @Test
     void crearGuarda() {
         when(repository.save(any())).thenReturn(recurso());
-        assertThat(service.create(recurso()).getCodigo()).isEqualTo("Demo");
+        assertThat(service.create(recurso()).getCodigo()).isEqualTo("BARRIO10");
     }
 
     @Test
     void actualizarExistente() {
         Cupon datos = recurso();
-        datos.setCodigo("Actualizado");
+        datos.setCodigo("BARRIO15");
         when(repository.findById(1L)).thenReturn(Optional.of(recurso()));
         when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         Optional<Cupon> resultado = service.update(1L, datos);
         assertThat(resultado).isPresent();
-        assertThat(resultado.get().getCodigo()).isEqualTo("Actualizado");
+        assertThat(resultado.get().getCodigo()).isEqualTo("BARRIO15");
     }
 
     @Test

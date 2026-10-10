@@ -1,6 +1,7 @@
 package cl.duoc.jv0101.foodgo.cupones.service;
 
 import java.util.List;
+import cl.duoc.jv0101.foodgo.cupones.exception.ResourceConflictException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import cl.duoc.jv0101.foodgo.cupones.exception.ResourceNotFoundException;
@@ -38,16 +39,24 @@ public class UsoCuponService {
     public UsoCupon create(Long cuponId, UsoCupon recurso) {
         Cupon cupon = cuponRepository.findById(cuponId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cupon no encontrado con id " + cuponId));
+        if (repository.existsByCupon_IdAndPedidoId(cuponId, recurso.getPedidoId())) {
+            throw new ResourceConflictException("Este cupón ya fue utilizado en ese pedido");
+        }
         recurso.setId(null);
         recurso.setCupon(cupon);
+        recurso.setMontoDescontado(CuponService.calcularDescuento(cupon, recurso.getSubtotalPedido()));
         return repository.save(recurso);
     }
 
     public UsoCupon update(Long id, UsoCupon datos) {
         UsoCupon existente = findById(id);
+        if (repository.existsByCupon_IdAndPedidoIdAndIdNot(existente.getCupon().getId(), datos.getPedidoId(), id)) {
+            throw new ResourceConflictException("Este cupón ya fue utilizado en ese pedido");
+        }
         existente.setPedidoId(datos.getPedidoId());
         existente.setFechaUso(datos.getFechaUso());
-        existente.setMontoDescontado(datos.getMontoDescontado());
+        existente.setSubtotalPedido(datos.getSubtotalPedido());
+        existente.setMontoDescontado(CuponService.calcularDescuento(existente.getCupon(), datos.getSubtotalPedido()));
         return repository.save(existente);
     }
 
